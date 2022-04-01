@@ -1,0 +1,47 @@
+---
+title: "Day 1"
+author: "Derek Sollberger"
+date: "3/31/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE, message = FALSE, warning = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library("tidyverse")
+library("treemap")
+library("treemapify")
+```
+
+```{r}
+df <- data.frame(
+  name = c("Kris Bryant","Ryan McMahon","Brendan Rodgers","C.J. Cron","José Iglesias","Elias Díaz","Randal Grichuk","Charlie Blackmon","Connor Joe","Dom Nuñez","Sam Hilliard","Garrett Hampson","Colton Welker","Carlos Pérez","Alan Trejo","Yonathan Daza","Tim Lopes"),
+  war = c(2.4,2.1,1.9,1.8,1.3,1,1,0.7,0.6,0.5,0.4,0.1,0.1,0.1,0.1,0.1,0.1),
+  KB = c(1, rep(0, 16))
+) |>
+  mutate(index = paste0(name, "\n", war))
+df$KB <- factor(df$KB,
+                levels = c(1,0))
+```
+
+```{r}
+treemap(df,
+        title = "The Colorado Rockies with Kris Bryant (FanGraphs projected WAR)",
+        index = "index",
+        vSize = "war",
+        type = "categorical",
+        vColor = "KB",
+        palette = c("#33006F", "#C4CED4"),
+        position.legend = "none")
+```
+
+```{r}
+df |>
+  ggplot(aes(area = war, fill = KB, label = index)) +
+  geom_treemap() + 
+  geom_treemap_text(fontface = "italic", colour = "black", place = "centre",
+                    grow = TRUE) +
+  labs(title = "The Colorado Rockies with Kris Bryant",
+       subtitle = "",
+       caption = "Data Source: FanGraphs")
+```
+
