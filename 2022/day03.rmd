@@ -1,0 +1,68 @@
+---
+title: "Day 3"
+author: "Derek Sollberger"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: html_document
+---
+
+from history.com:
+
+"Florence Nightingale (1820-1910), known as “The Lady With the Lamp,” was a British nurse, social reformer and statistician best known as the founder of modern nursing. Her experiences as a nurse during the Crimean War were foundational in her views about sanitation."
+
+```{r setup, include=FALSE, message = FALSE, warning = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library("HistData")
+library("tidyverse")
+```
+
+code adapted from work by Neil Saunders
+
+https://nsaunders.wordpress.com/2021/03/16/florence-nightingales-rose-charts-and-others-in-ggplot2/
+
+```{r}
+nightingale_curated <- Nightingale |>
+  select(Date, Month, Year, contains("rate")) |>
+  pivot_longer(cols = 4:6, names_to = "Cause", values_to = "Rate") |> 
+  mutate(Cause = gsub(".rate", "", Cause),
+         period = ifelse(Date <= as.Date("1855-03-01"), "April 1854 to March 1855", "April 1855 to March 1856"),
+         Month = fct_relevel(Month, "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "Jan", "Feb", "Mar", "Apr", "May", "Jun")) |>
+  filter(period == "April 1854 to March 1855") |>
+  arrange(desc(Rate))
+```
+
+```{r}
+nightingale_curated |>
+  ggplot(aes(x = Month, y = Rate)) +
+  geom_col(aes(fill = Cause), color = "black",
+           width = 1, position = "identity") +
+  coord_polar() +
+  scale_fill_manual(values = c("lightsteelblue3", "antiquewhite4", "lightpink2")) +
+  scale_y_sqrt() +
+  labs(title = "Diagram of the Causes of Mortality",
+       subtitle = "in the Army in the East",
+       caption = "code source: Neil Saunders",
+       x = "April 1854 to March 1855",
+       y = "") +
+  theme(#axis.text.x = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks = element_blank(),
+        legend.position = "bottom",
+        panel.background = element_rect(fill = alpha("antiquewhite2", 0.5)),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        plot.subtitle = element_text(color = "black", hjust = 0.5, size = 12),
+        plot.title = element_text(color = "black", hjust = 0.5, size = 14))
+```
+For alt text:
+
+https://psu.pb.unizin.org/ist301/chapter/data-visualization/
+
+"    The Areas of the blue, red, & black wedges are each measured from the center as the common vertex.
+
+    The blue wedges measured from the center of the circle represent area for area the deaths from Preventable or Mitigatable Zymotic diseases, the red wedges measured from the center the deaths from wounds, & the black wedges measured from the center the deaths from all other causes.
+
+    The black line across the red triangle in Nov. 1854 marks the boundary of the deaths from all other causes during the month.
+
+    In October 1854, & April 1855, the black area coincides with the red, in January & February 1856, the blue coincides with the black.
+
+    The entire areas may be compared by following the blue, the red, & the black lines enclosing them."
