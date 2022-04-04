@@ -1,0 +1,69 @@
+---
+title: "garden planning"
+author: "Derek Sollberger"
+date: "2/2/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library("dplyr")
+library("ggplot2")
+```
+
+```{r}
+xmax <- 88
+ymax <- 48
+garden_view <- data.frame(x = rep(NA, xmax*ymax),
+                          y = rep(NA, xmax*ymax),
+                          type = rep(NA, xmax*ymax))
+for(i in 1:xmax){
+  for(j in 1:ymax){
+    garden_view$x[(i-1)*ymax + j] <- i
+    garden_view$y[(i-1)*ymax + j] <- j
+    garden_view$type[(i-1)*ymax + j] <- "landscape fabric"
+  }
+}
+```
+
+```{r}
+new_item <- function(a = 1, b = 1, 
+                     c = 1, d = 1,
+                     type = "landscape fabric"){
+  for(i in a:b){
+    for(j in c:d){
+      # garden_view$x[(i-1)*d + j] <<- i
+      # garden_view$y[(i-1)*d + j] <<- j
+      garden_view$type[(i-1)*ymax + j] <<- type
+    }
+  }
+}
+```
+
+```{r}
+#patio
+new_item(36, 88, 1, 13, "patio")
+
+#garden beds
+new_item(27, 39, 23, 26, "garden bed")
+new_item(27, 39, 35, 38, "garden bed")
+new_item(51, 63, 23, 26, "garden bed")
+new_item(51, 63, 35, 38, "garden bed")
+new_item(33, 88, 45, 48, "garden bed")
+new_item(85, 88, 14, 48, "garden bed")
+
+#storage
+new_item(79, 88, 45, 48, "storage")
+```
+
+
+```{r}
+garden_view |>
+  ggplot() +
+  geom_tile(aes(x = x, y = y, fill = type), color = "black") +
+  labs(title = "Derek's Garden",
+       subtitle = "2022",
+       caption = "optimistic") +
+  theme_minimal()
+```
+
