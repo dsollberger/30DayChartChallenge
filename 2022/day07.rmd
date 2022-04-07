@@ -1,0 +1,65 @@
+---
+title: "Day 7"
+author: "Derek Sollberger"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: html_document
+---
+
+```{r setup, message = FALSE, warning = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library("tidyverse")
+
+# Google Trends
+# time frame: past 5 years
+# search string: "let's get physical"
+d7_data_raw <- readr::read_csv("LetsGetPhysical.csv", skip = 2)
+colnames(d7_data_raw) <- c("week", "interest")
+```
+
+```{r}
+d7_data <- d7_data_raw |>
+  mutate(month = lubridate::month(week, label = TRUE)) |>
+  group_by(month) |>
+  mutate(avg_interest = mean(interest, na.rm = TRUE)) |>
+  ungroup() |>
+  select(month, avg_interest) |>
+  distinct()
+d7_data$month <- factor(d7_data$month,
+                        levels = c("Jan", "Feb", "Mar", "Apr",
+                                   "May", "Jun", "Jul", "Aug",
+                                   "Sep", "Oct", "Nov", "Dec"))
+```
+
+```{r}
+d7_data |>
+  ggplot() +
+  ggpubr::background_image(jpeg::readJPEG("OliviaNewtonJohn.jpg")) +
+  geom_bar(aes(x = month, y = avg_interest,
+               fill = avg_interest), color = "black",
+           stat = "identity") +
+  geom_label(aes(x = month, y = 0, label = month)) +
+  geom_label(aes(x = month, y = avg_interest, label = round(avg_interest))) +
+  scale_fill_continuous(low = "white", high = "red") +
+  ylim(-10, 70) +
+  labs(title = "Google Searches for 'Let's Get Physical'",
+       subtitle = "30 Day Chart Challenge, Day 7: Physical",
+       caption = "Data Source: Google Trends\nApril 2017 to April 2022",
+       fill = "Average Interest",
+       x = "", y = "") +
+  theme(axis.text.x = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks = element_blank(),
+        legend.position = "bottom",
+        panel.background = element_rect(fill = alpha("#23ADAD", 0.5)),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        plot.subtitle = element_text(color = "blue", 
+                                     hjust = 0.5, 
+                                     size = 15),
+        plot.title = element_text(color = "red",
+                                  hjust = 0.5,
+                                  size = 20))
+```
+
+
+
