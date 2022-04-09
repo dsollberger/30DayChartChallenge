@@ -1,0 +1,99 @@
+---
+title: "Day 9"
+author: "Derek Sollberger"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: html_document
+---
+
+```{r setup, message = FALSE, warning = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library("ggvenn")
+library("tidyverse")
+```
+
+```{r, message = FALSE, warning = FALSE, eval = FALSE}
+# US Dept of Education
+# College Scorecard
+# https://collegescorecard.ed.gov/data/
+# "Most Recent Data by Field of Study"
+d9_data_raw <- readr::read_csv("Most-Recent-Cohorts-Field-of-Study.csv")
+```
+
+```{r, eval = FALSE}
+# the original data set was about 416 MB in size, so
+# let's focus on the data we want for today
+d9_data <- d9_data_raw |>
+  select(INSTNM, CIPDESC, CREDLEV) |>
+  filter(CREDLEV == 3) |> #3 = bachelor's degree, 5 = master's degree, 6 = PhD, etc.
+  select(INSTNM, CIPDESC) |>
+  rename(institute = INSTNM, major = CIPDESC)
+write_csv(d9_data, "d9_data.csv") #to somewhat adhere to reproducibility
+```
+
+```{r, eval = FALSE}
+# find institutions that offer math, statistics, or physics majors programs
+d9_data <- d9_data |>
+  mutate(major = tolower(major)) |>
+  mutate(math_bool = stringr::str_detect(major, "math"),
+         stat_bool = stringr::str_detect(major, "statistics"),
+         physics_bool = stringr::str_detect(major, "physics"))
+```
+
+```{r}
+# find institutions that offer math, statistics, or physics majors programs
+# better code to capture intersections
+d9_data <- d9_data |>
+  mutate(major = tolower(major)) |>
+  group_by(institute) |>
+  mutate(Math = any(str_detect(major, "math")),
+         Statistics = any(str_detect(major, "statistics")),
+         Physics = any(str_detect(major, "physics")))
+```
+
+```{r, eval = FALSE}
+# https://www.datanovia.com/en/blog/beautiful-ggplot-venn-diagram-with-r/
+# not needed since geom_venn() works with data frames
+list_for_venn <- list(
+  math = d9_data |> filter(math_bool) |> select(institute) |> distinct(),
+  stats = d9_data |> filter(stat_bool) |> select(institute) |> distinct(),
+  physics = d9_data |> filter(physics_bool) |> select(institute) |> distinct()
+)
+```
+
+```{r, eval = FALSE}
+ggvenn::ggvenn(list_for_venn,
+               columns = c("Mathematics", "Statistics", "Physics"))
+```
+
+```{r}
+d9_data |>
+  ggplot() +
+  ggvenn::geom_venn(aes(A = Math, B = Statistics, C = Physics),
+                    fill_color = c("#DBB165", "#2E604A", "#D1362F")) +
+  # http://opencolor.tools/palettes/wesanderson/ ... RUSHMORE!
+  labs(title = "30 Day Chart Challenge, Day 9: Statistics",
+       subtitle = "US Institutions that Offer these Bachelor's Degree Programs",
+       caption = "Data Source: US DOE College Scorecard",
+       x = "", 
+       y = "") +
+  theme(axis.text.x = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks = element_blank(),
+        #axis.title.x = element_text(size = 15),
+        #axis.title.y = element_text(size = 15),
+        #legend.position = "bottom",
+        panel.background = element_rect(fill = "white"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        plot.caption = element_text(color = "#D1362F", 
+                                     hjust = 0.5, 
+                                     size = 15),
+        plot.subtitle = element_text(color = "#DBB165", 
+                                     hjust = 0.5, 
+                                     size = 15),
+        plot.title = element_text(color = "#2E604A",
+                                  hjust = 0.5,
+                                  size = 20))
+```
+
+
