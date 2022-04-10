@@ -73,7 +73,7 @@ d9_data |>
   # http://opencolor.tools/palettes/wesanderson/ ... RUSHMORE!
   labs(title = "30 Day Chart Challenge, Day 9: Statistics",
        subtitle = "US Institutions that Offer these Bachelor's Degree Programs",
-       caption = "Data Source: US DOE College Scorecard",
+       caption = "Data Source: US Dept of Education College Scorecard",
        x = "", 
        y = "") +
   theme(axis.text.x = element_blank(),
