@@ -1,0 +1,58 @@
+---
+title: "Day 11"
+author: "Derek Sollberger"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: html_document
+---
+
+```{r setup, message = FALSE, warning = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library("ggnetwork")
+library("igraph")
+library("tidyverse")
+```
+
+```{r}
+# looking at 5 nodes, so let's start with a 5x5 matrix
+chorus_mat <- matrix(rep(0, 25), nrow = 5, ncol = 5)
+
+lyrics <- c("You spin me", "right", "'round", "baby", "like a record")
+rownames(chorus_mat) <- lyrics
+colnames(chorus_mat) <- lyrics
+
+# filling in a transition matrix and making it row stochastic
+chorus_mat["You spin me", "right"] <- 1/1
+chorus_mat["right", "'round"] <- 3/3
+chorus_mat["'round", "You spin me"] <- 1/5
+chorus_mat["'round", "'round"] <- 2/5
+chorus_mat["'round", "baby"] <- 1/5
+chorus_mat["'round", "like a record"] <- 1/5
+chorus_mat["baby", "right"] <- 2/2
+chorus_mat["like a record", "baby"] <- 1/1
+
+# show matrix to confirm
+chorus_mat
+```
+
+
+```{r}
+quick_graph <- igraph::graph_from_adjacency_matrix(chorus_mat,
+                                                   mode = "directed",
+                                                   weighted = "weight")
+plot(quick_graph,
+     edge.width = E(quick_graph)$weight,
+     edge.label = E(quick_graph)$weight,
+     vertex.color = "gray75",
+     vertex.size = 50)
+```
+
+```{r}
+# here is an incomplete look at ggnetwork
+df_for_gg_network <- ggnetwork(chorus_mat)
+df_for_gg_network |>
+  ggplot(aes(x = x, y = y, xend = xend, yend = yend)) +
+  geom_edges(color = "purple") +
+  geom_nodelabel(aes(label = vertex.names))
+```
+
+
