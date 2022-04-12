@@ -1,0 +1,44 @@
+---
+title: "day 9"
+author: "Derek"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: html_document
+---
+
+```{r setup, include=FALSE, message = FALSE, warning = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library("gt")
+library("latex2exp")
+library("tidyverse")
+```
+
+```{r}
+# https://cran.r-project.org/web/packages/latex2exp/vignettes/using-latex2exp.html
+unname(TeX(r"(\sin x)"))
+```
+
+```{r}
+# print(r'$\sin (x)$')
+```
+
+
+```{r}
+d9_tibble <- tibble(
+  distribution = c("binomial", "geometric", "Poisson",
+                   "uniform", "exponential", "normal"),
+  formula = c(
+    TeX(r"(f(k) = \binom{n}{k} p^{k}(1-p)^{n-k})"),
+    TeX(r"(f(k) = (1-p)^{k}p)"),
+    TeX(r"(f(k) = \frac{ \mu^{k} \cdot e^{-\mu} }{k!})"),
+    TeX(r"(f(x) = \frac{1}{b-a})"),
+    TeX(r"(f(x) = \lambda e^{-\lambda x})"),
+    TeX(r"(f(x) = \frac{1}{\sigma\sqrt{2\pi}}e^{-0.5 \left( \frac{x-\mu}{\sigma} \right)^{2}})")
+  )
+)
+```
+
+```{r}
+d9_gt_tibble <- gt(d9_tibble)
+d9_gt_tibble
+```
+

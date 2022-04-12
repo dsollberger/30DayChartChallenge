@@ -28,7 +28,7 @@ d12_data <- d12_data |>
 ```{r}
 #prepare for geom_label
 
-# label my university
+# label my university: Merced
 d12_data$forLabel[stringr::str_detect(d12_data$institution, "Merced")] <- TRUE
 
 # ranked highest
