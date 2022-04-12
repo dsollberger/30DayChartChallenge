@@ -1,0 +1,71 @@
+---
+title: "Day 12"
+author: "Derek"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: html_document
+---
+
+```{r setup, message = FALSE, warning = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library("ggrepel")
+library("ggthemes")
+library("tidyverse")
+```
+
+```{r, message = FALSE, warning = FALSE}
+# https://www.kaggle.com/datasets/neelgajare/2022-usa-college-rankings-more
+d12_data <- readr::read_csv("colleges.csv")
+
+# fix column names
+colnames(d12_data) <- c("index", "institution", "tuition", "enrollment")
+
+# rankings started at zero??
+d12_data <- d12_data |>
+  mutate(ranking = index + 1,
+         forLabel = rep(FALSE, nrow(d12_data)))
+```
+
+```{r}
+#prepare for geom_label
+
+# label my university
+d12_data$forLabel[stringr::str_detect(d12_data$institution, "Merced")] <- TRUE
+
+# ranked highest
+#d12_data$forLabel[which.min(d12_data$ranking)] <- TRUE
+
+# highest tuition?
+#d12_data$forLabel[which.max(d12_data$tuition)] <- TRUE
+# lowest tuition?
+#d12_data$forLabel[which.min(d12_data$tuition)] <- TRUE
+
+# highest enrollment?
+#d12_data$forLabel[which.max(d12_data$enrollment)] <- TRUE
+# lowest enrollment?
+#d12_data$forLabel[which.min(d12_data$enrollment)] <- TRUE
+
+d12_data_for_labels <- d12_data |>
+  filter(forLabel)
+```
+
+
+```{r}
+d12_data |>
+  ggplot(aes(x = ranking, y = tuition)) +
+  geom_point() +
+  geom_label_repel(aes(x = ranking, y = tuition,
+                       label = institution),
+                   data = d12_data_for_labels,
+                   nudge_x = 150,
+                   nudge_y = 15000,
+                   arrow = arrow(
+      length = unit(0.03, "npc"), type = "closed", ends = "last"
+    )) +
+  labs(title = "UC Merced Entered the Top 100",
+       subtitle = "30 Day Chart Challenge, Day 12: The Economist",
+       x = "US News Ranking (2022)",
+       y = "Tuition (US dollars)",
+       caption = "Data Source: Kaggle, Neel Kajare") +
+  ggthemes::theme_economist()
+```
+
