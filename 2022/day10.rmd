@@ -1,0 +1,90 @@
+---
+title: "Day 10"
+author: "Derek Sollberger"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: html_document
+---
+
+```{r setup, message = FALSE, warning = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library("patchwork")
+library("tidyverse")
+```
+
+The reaction rates of the reaction S $\rightarrow$ P catalyzed by enzyme E were determined under conditions such that only very little product was formed.  Compute the maximum reaction velocity asymptote $V_{\text{max}}$ and the Michaelis-Menton constant $K_{m}$
+
+```{r, message = FALSE, warning = FALSE}
+#substrate concentration (mircomolars)
+S <- c(0.08, 0.12, 0.54, 1.23, 1.82, 2.72, 4.94, 10.00)
+rS <- 1/S # reciprocal
+
+#reaction rate (micromolars per minute)
+v <- c(0.15, 0.21, 0.7, 1.1, 1.3, 1.5, 1.7, 1.8)
+rv <- 1/v # reciprocal
+
+df <- data.frame(S, v, rS, rv)
+```
+
+```{r}
+p1 <- ggplot(df, aes(x = S, y = v)) +
+  geom_point(color = "#2E604A", size = 5) +
+  geom_smooth(se = TRUE) +
+  labs(title = "Michaelis-Menton Experiment",
+       subtitle = "Original Data",
+       caption = "Bio 18",
+       x = "substrate concentration (micromolars)",
+       y = "reaction rate (micromolars per minute)") +
+  theme(#axis.text.x = element_blank(),
+        #axis.text.y = element_blank(),
+        #axis.ticks = element_blank(),
+        #axis.title.x = element_text(size = 15),
+        #axis.title.y = element_text(size = 15),
+        #legend.position = "bottom",
+        panel.background = element_rect(fill = "white"),
+        panel.grid.major = element_line(color = "gray70"),
+        panel.grid.minor = element_blank(),
+        plot.caption = element_text(color = "#DBB165", 
+                                     hjust = 0.0, 
+                                     size = 10),
+        plot.subtitle = element_text(color = "#2E604A", 
+                                     hjust = 0.5, 
+                                     size = 20),
+        plot.title = element_text(color = "#27223C",
+                                  hjust = 0.5,
+                                  size = 15))
+```
+
+```{r}
+p2 <- ggplot(df, aes(x = rS, y = rv)) +
+  geom_point(color = "#D1362F", size = 5) +
+  geom_smooth(method = "lm", se = TRUE) +
+  labs(title = "Michaelis-Menton Experiment",
+       subtitle = "Double Reciprocal Plot",
+       caption = "30 Day Chart Challenge, Day 10: Experimental",
+       x = "1/[S] (1/micromoles)",
+       y = "1/v (minutes per micromolar)") +
+  theme(#axis.text.x = element_blank(),
+        #axis.text.y = element_blank(),
+        #axis.ticks = element_blank(),
+        #axis.title.x = element_text(size = 15),
+        #axis.title.y = element_text(size = 15),
+        #legend.position = "bottom",
+        panel.background = element_rect(fill = "white"),
+        panel.grid.major = element_line(color = "gray70"),
+        panel.grid.minor = element_blank(),
+        plot.caption = element_text(color = "#DBB165", 
+                                     # hjust = 0.5, 
+                                     size = 10),
+        plot.subtitle = element_text(color = "#D1362F", 
+                                     hjust = 0.5, 
+                                     size = 20),
+        plot.title = element_text(color = "#27223C",
+                                  hjust = 0.5,
+                                  size = 15))
+```
+
+```{r}
+#patchwork
+p1 + p2
+```
+
