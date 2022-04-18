@@ -1,0 +1,106 @@
+---
+title: "Day 17"
+author: "Derek Sollberger"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: html_document
+---
+
+```{r setup, message = FALSE, warning = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library("ggnetwork")
+library("tidyverse")
+```
+
+```{r}
+# loading information for each metro line as separate data frames
+line_1_df <- readxl::read_xlsx("brussels_metro_stations.xlsx", sheet = "Line 1")
+line_2_df <- readxl::read_xlsx("brussels_metro_stations.xlsx", sheet = "Line 2")
+line_5_df <- readxl::read_xlsx("brussels_metro_stations.xlsx", sheet = "Line 5")
+line_6_df <- readxl::read_xlsx("brussels_metro_stations.xlsx", sheet = "Line 6")
+
+# North-South axis (renamed here only for coding simplicity)
+line_3_df <- readxl::read_xlsx("brussels_metro_stations.xlsx",
+                               sheet = "North-South Axis")
+
+# Greater Ring axis (renamed here only for coding simplicity)
+line_4_df <- readxl::read_xlsx("brussels_metro_stations.xlsx",
+                               sheet = "Greater Ring Axis")
+```
+
+```{r}
+# make a list of stations
+station_list <- unique(c(line_1_df$`Name in French`,
+                         line_2_df$`Name in French`,
+                         line_3_df$`Name in French`,
+                         line_4_df$`Name in French`,
+                         line_5_df$`Name in French`,
+                         line_6_df$`Name in French`))
+
+# number of stations
+N <- length(station_list)
+```
+
+```{r}
+# allocate adjacency matrix space
+brussels_station_matrix <- matrix(rep(0, N^2), nrow = N)
+rownames(brussels_station_matrix) <- station_list
+colnames(brussels_station_matrix) <- station_list
+
+# indicate metro links (i.e. edges between nodes)
+for(i in 1:(length(line_1_df$`Name in French`) - 1)){
+  station_1 <- line_1_df$`Name in French`[i]
+  station_2 <- line_1_df$`Name in French`[i+1]
+  brussels_station_matrix[station_1, station_2] <- 1
+}
+for(i in 1:(length(line_2_df$`Name in French`) - 1)){
+  station_1 <- line_2_df$`Name in French`[i]
+  station_2 <- line_2_df$`Name in French`[i+1]
+  brussels_station_matrix[station_1, station_2] <- 1
+}
+for(i in 1:(length(line_3_df$`Name in French`) - 1)){
+  station_1 <- line_3_df$`Name in French`[i]
+  station_2 <- line_3_df$`Name in French`[i+1]
+  brussels_station_matrix[station_1, station_2] <- 1
+}
+for(i in 1:(length(line_4_df$`Name in French`) - 1)){
+  station_1 <- line_4_df$`Name in French`[i]
+  station_2 <- line_4_df$`Name in French`[i+1]
+  brussels_station_matrix[station_1, station_2] <- 1
+}
+for(i in 1:(length(line_5_df$`Name in French`) - 1)){
+  station_1 <- line_5_df$`Name in French`[i]
+  station_2 <- line_5_df$`Name in French`[i+1]
+  brussels_station_matrix[station_1, station_2] <- 1
+}
+for(i in 1:(length(line_6_df$`Name in French`) - 1)){
+  station_1 <- line_6_df$`Name in French`[i]
+  station_2 <- line_6_df$`Name in French`[i+1]
+  brussels_station_matrix[station_1, station_2] <- 1
+}
+```
+
+```{r}
+# here is an incomplete look at ggnetwork
+metro_plot <- ggnetwork(brussels_station_matrix) |>
+  ggplot(aes(x = x, y = y, xend = xend, yend = yend)) +
+  geom_edges(color = "#EF3340", size = 3) +
+  geom_nodelabel(aes(label = vertex.names)) +
+  labs(title = "Brussels Metro Network",
+       subtitle = "30 Day Chart Challenge, Day 17: Connections",
+       caption = "French version of station names",
+       x = "",
+       y = "") +
+  theme(axis.text.x = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks = element_blank(),
+        legend.position = "none",
+        legend.title = element_blank(),
+        panel.background = element_rect(fill = "yellow"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        plot.caption = element_text(color = "#EF3340", hjust = 0.5, size = 15),
+        plot.subtitle = element_text(color = "#000000", hjust = 0.5, size = 20),
+        plot.title = element_text(color = "#000000", hjust = 0.5, size = 25))
+```
+
+
