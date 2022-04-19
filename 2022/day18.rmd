@@ -1,0 +1,77 @@
+---
+title: "Day 18"
+author: "Derek Sollberger"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: html_document
+---
+
+```{r setup, message = FALSE, warning = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library("sf") #handle shape files
+library("tidyverse")
+```
+
+```{r, message = FALSE, warning = FALSE}
+# load shape file
+# https://ec.europa.eu/eurostat/web/gisco/geodata/reference-data/administrative-units-statistical-units/countries
+# countries_shp <- st_read("CNTR_BN_60M_2020_4326_INLAND.shp/CNTR_BN_60M_2020_4326_INLAND.shp")
+# countries_shp <- st_read("CNTR_BN_60M_2020_3035.shp/CNTR_BN_60M_2020_3035.shp")
+
+# for later, the average amount of teaching hours per year was 996.1716
+# (for today, I simply cleaned through the data file in Excel, and manually typed in the country codes)
+
+# NEVERMIND, I don't know presently how to work with the European shape files
+# that don't have the country names?!??
+
+# https://data.oecd.org/teachers/teaching-hours.htm
+d18_data_raw <- readr::read_csv("DP_LIVE_19042022073753254.csv")
+
+# https://wits.worldbank.org/wits/wits/witshelp/content/codes/country_codes.htm
+country_codes <- readxl::read_xlsx("country_codes.xlsx")
+```
+
+```{r}
+d18_data <- d18_data_raw |>
+  filter(SUBJECT == "PRY") |>   #focus on primary schools
+  filter(LOCATION != "OAVG") |> #do not need this overall average
+  group_by(LOCATION) |>         #for each country ...
+  filter(TIME == max(TIME)) |>  #... retain only most recent statistic
+  ungroup()
+
+# attach full names of countries (rather than using 3-letter codes)
+d18_data <- d18_data |>
+  left_join(country_codes, by = c("LOCATION" = "iso3")) |>
+  select(country, Value)
+
+# compute median
+overall_median = median(d18_data$Value)
+
+# make categorical variable for funsies
+d18_data <- d18_data |>
+  mutate(above_below = ifelse(Value > overall_median, "Above Median", "Below Median"))
+```
+
+```{r}
+d18_plot <- d18_data |>
+  ggplot(aes(x = reorder(country, Value), y = Value,
+             fill = above_below)) +
+  geom_bar(color = "black", stat = "identity") +
+  scale_fill_manual(values = c("red", "darkgreen")) +
+  coord_flip() +
+  labs(title = "Teacher Workloads Around the World",
+       subtitle = "30 Day Chart Challenge, Day 18: OECD Data",
+       caption = "Teaching Hours per Year",
+       x = "",
+       y = "") +
+  theme(#axis.text.x = element_blank(),
+        #axis.text.y = element_blank(),
+        #axis.ticks = element_blank(),
+        legend.position = c(0.8, 0.5),
+        legend.title = element_blank(),
+        panel.background = element_rect(fill = "white"),
+        panel.grid.major = element_line(color = "gray50"),
+        panel.grid.minor = element_blank(),
+        plot.caption = element_text(color = "darkgreen", hjust = 0.5, size = 20),
+        plot.subtitle = element_text(color = "red", hjust = 0.5, size = 20),
+        plot.title = element_text(color = "#000000", hjust = 0.5, size = 20))
+```
