@@ -1,0 +1,209 @@
+---
+title: "Boston Public Schools"
+author: "Derek Sollberger"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: 
+ html_document:
+   toc: TRUE
+   theme: cerulean
+---
+
+```{r setup, include=FALSE, message = FALSE, warning = FALSE}
+library("corrplot")
+library("readxl")
+library("tidyverse")
+```
+
+# Loading the Data
+
+Since we are working with an Excel spreadsheet, we will use the `read_xlsx()` command.
+
+```{r, message = FALSE, warning = FALSE}
+df <- read_xlsx("BPS_air_quality.xlsx")
+
+df <- df |>
+  filter(Value >= 0) #removing some strange outliers (sensors were broken?)
+```
+
+The information is now stored in a *data frame* called `df`.
+
+# Exploring the Data
+
+We can use the `head()` command to get a quick look at the data.
+
+```{r}
+head(df)
+```
+The `str()` gives us the structure of the data frame.  Here, we can see which variables are numerical and which are categorical.
+
+```{r}
+str(df)
+```
+Source: https://www.bostonpublicschools.org/Page/8810
+
+"Indoor Air Quality sensors have been installed in all BPS classrooms, Nurse’s Offices, and Main Offices, with a roof-top unit installed in every school building to measure outdoor air as a baseline per location.
+
+"Each sensor will record the following IAQ measures:
+
+*    Carbon Dioxide (CO2, ppm) 
+*    Carbon Monoxide (CO, ppm)
+*    Airborne particulates (PM10, ug/m3)
+*    Airborne Particulates (PM2.5, ug/m3)
+*    Temperature (T, Fahrenheit)
+*    Relative Humidity (RH, percent)
+
+# Standard Deviations
+
+```{r}
+df |>
+  group_by(Parameter) |>
+  mutate(sd = sd(Value, na.rm = TRUE)) |>
+  ungroup() |>
+  ggplot() +
+  geom_point(aes(x = Value, y = sd, color = Parameter)) +
+  labs(title = "Boston Public Schools",
+       subtitle = "Air Quality Data",
+       caption = "Bio 18",
+       x = "measurement",
+       y = "standard deviation") +
+  theme_minimal()
+```
+
+# Range Rule of Thumb
+
+For now (to ease ourselves into learning the concept of the standard deviation), let us use the **range rule of thumb** interval.  It is based on classical statistical textbooks that would note how "About 95 percent of data fall within two standard deviations of the mean"
+$$(\bar{x} - 2s, \bar{x} + 2s)$$
+
+We need the sample statistics for our data
+
+```{r}
+df |>
+  group_by(Parameter) |>
+  summarize(xbar = mean(Value, na.rm = TRUE),
+            median = median(Value, na.rm = TRUE),
+            sd = sd(Value, na.rm = TRUE))
+```
+
+# Boxplots
+
+A **boxplot** tends to be used to quickly show numerical data across a categorical variable.
+
+* the middle line is the median (50th percentile)
+* the top and bottom of the rectangles are the 75th and 25th percentile respectively
+* the IQR (inter-quartile range) is the difference between the 75th and 25th percentiles
+* the "whiskers" are usually drawn out 1.5*IQR beyond the rectangle
+* we might consider data beyond the whiskers to be outliers
+
+```{r}
+df |>
+  filter(Parameter == "Carbon Dioxide" | Parameter == "Carbon Monoxide") |>
+  group_by(Parameter) |>
+  summarize(min = round(min(Value, na.rm = TRUE),4),
+            q25 = round(quantile(Value, probs = 0.25, na.rm = TRUE),4),
+            median = round(median(Value, na.rm = TRUE),4),
+            q75 = round(quantile(Value, probs = 0.75, na.rm = TRUE),4),
+            max = round(max(Value, na.rm = TRUE),4))
+```
+
+```{r}
+df |>
+  filter(Parameter == "Carbon Dioxide") |>
+  ggplot() +
+  geom_boxplot(aes(x = Parameter, y= Value)) +
+  labs(title = "Boston Public Schools",
+       subtitle = "Air Quality Data",
+       caption = "Bio 18",
+       x = "pollutant",
+       y = "amount (ppm)") +
+  theme_minimal()
+```
+
+```{r}
+df |>
+  filter(Parameter == "Carbon Monoxide") |>
+  ggplot() +
+  geom_boxplot(aes(x = Floor, y= Value)) +
+  labs(title = "Boston Public Schools",
+       subtitle = "Air Quality Data",
+       caption = "Bio 18",
+       x = "floor",
+       y = "amount (ppm)") +
+  theme_minimal()
+```
+
+What is the 95th percentile of carbon monoxide levels?
+
+```{r}
+df |>
+  filter(Parameter == "Carbon Dioxide" | Parameter == "Carbon Monoxide") |>
+  group_by(Parameter) |>
+  summarize(q05 = round(quantile(Value, probs = 0.05, na.rm = TRUE),4),
+            q25 = round(quantile(Value, probs = 0.25, na.rm = TRUE),4),
+            q50 = round(quantile(Value, probs = 0.50, na.rm = TRUE),4),
+            q75 = round(quantile(Value, probs = 0.75, na.rm = TRUE),4),
+            q95 = round(quantile(Value, probs = 0.95, na.rm = TRUE),4))
+```
+
+
+```{r}
+df |>
+  filter(Parameter == "Carbon Monoxide") |>
+  filter(Value < 0.9605) |>
+  ggplot() +
+  geom_boxplot(aes(x = Floor, y= Value, fill = Floor), 
+               color = "black") +
+  labs(title = "Boston Public Schools",
+       subtitle = "Air Quality Data",
+       caption = "Bio 18",
+       x = "floor",
+       y = "amount (ppm)") +
+  theme_minimal()
+```
+
+# Building a Correlation Plot
+
+```{r}
+d13_data <- df
+# making easier-to-use column names
+colnames(d13_data) <- c("school", "floor", "room",
+                  "sensor", "status", "read_date_time",
+                  "parameter", "value", "units")
+
+# This is too heavy-handed, but I am going to today group the pollution metrics
+# by school and day (and average the values?)
+# oh, all of the data were from the same day!
+d13_data <- d13_data |>
+  select(school, parameter, value) |>
+  group_by(school, parameter) |>
+  mutate(avg_value = mean(value, na.rm = TRUE)) |>
+  ungroup() |>
+  select(school, parameter, avg_value) |>
+  distinct()
+head(d13_data)
+```
+
+```{r}
+# here I wanted each measurement type to have its own column
+d13_data_wide <- d13_data |>
+  pivot_wider(names_from = parameter,
+              values_from = avg_value) |>
+  select(-school) #to keep only numerical columns
+head(d13_data_wide)
+```
+
+```{r}
+corrplot::corrplot.mixed(cor(d13_data_wide,
+                             use = "pairwise.complete.obs"))
+```
+
+```{r}
+corrplot::corrplot(cor(d13_data_wide, use = "pairwise.complete.obs"),
+                   addCoef.col = "black",
+                   col = COL2("PRGn"),
+                   diag = FALSE,
+                   method = "square",
+                   # order = "FPC",
+                   tl.col = "black",
+                   tl.srt = 60, #angled labels
+                   type = "lower")
+```

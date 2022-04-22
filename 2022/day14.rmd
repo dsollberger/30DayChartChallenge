@@ -1,0 +1,87 @@
+---
+title: "Day 14"
+author: "Derek Sollberger"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: html_document
+---
+
+```{r setup, message = FALSE, warning = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library("rayshader") #for 3D effects
+library("rgeos") #for centroids
+library("sf") #handle shape files
+library("tidyverse")
+```
+
+```{r, message = FALSE, warning = FALSE}
+# load shape file
+# USA_hex_shp <- st_read("us_states_hexgrid/us_states_hexgrid.shp")
+states_shp <- st_read("cb_2018_us_state_5m/cb_2018_us_state_5m.shp")
+
+# https://www.everylibraryinstitute.org/book_censorship_database_magnusson
+d14_data_raw <- readxl::read_xlsx("Censorship Attacks .xlsx")
+
+# count the observations per US state
+d14_data <- d14_data_raw |>
+  select(State) |>
+  group_by(State) |>
+  count() |>
+  ungroup() |>
+  mutate(state_long = paste(State, "(United States)"))
+
+# merge_data
+# d14_data_for_map <- USA_hex_shp |>
+  # left_join(d14_data, by = c("google_nam" = "state_long"))
+d14_data_for_map <- states_shp |>
+  left_join(d14_data, by = c("NAME" = "State"))
+
+# impute zeroes for missing data
+d14_data_for_map$n[is.na(d14_data_for_map$n)] <- 0
+```
+
+```{r}
+# Calculate the centroid of each hexagon to add the label
+# https://stackoverflow.com/questions/49343958/do-the-values-returned-by-rgeosgcentroid-and-sfst-centroid-differ
+# centers <- data.frame(
+#   st_coordinates(st_centroid(USA_hex_shp$geometry)), 
+#   id=USA_hex_shp$iso3166_2)
+centers <- data.frame(
+  st_coordinates(st_centroid(states_shp$geometry)), 
+  id=states_shp$STUSPS)
+
+d14_data_for_map <- d14_data_for_map |>
+  left_join(centers, by = c("STUSPS" = "id"))
+```
+
+```{r}
+hex_plot <- d14_data_for_map %>%
+  ggplot() +
+  geom_sf(aes(fill = n)) +
+  scale_fill_continuous(low = "white", high = "orange2") +
+  # geom_text(aes(x = X, y = Y, label = n), size = 3) +
+  xlim(-125, -65) +
+  ylim(25, 50) +
+  labs(title = "Book Bans and Challenges",
+       subtitle = "30 Day Chart Challenge Day 14: 3D",
+       caption = "Data Source: Dr. Tasslyn Magnusson",
+       x = "", y = "") +
+  theme_minimal() +
+  # theme(legend.position = "right") +
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust=1),
+        panel.background = element_blank(),
+        panel.grid.minor = element_blank(),
+        legend.position = "none",
+        plot.caption = element_text(color = "black", hjust = 0.3, size = 10),
+        plot.subtitle = element_text(color = "black", hjust = 0.2, size = 10),
+        plot.title = element_text(color = "black", hjust = 0.1, size = 10)) +
+  guides(fill = guide_legend(title = "Number of \nSchool District \nChallenges"))
+```
+
+```{r, eval = FALSE}
+t1 <- proc.time()
+plot_gg(hex_plot, multicore = TRUE)
+# Sys.sleep(0.2)
+# render_snapshot(clear = TRUE)
+t2 <- proc.time()
+t2 - t1
+```
