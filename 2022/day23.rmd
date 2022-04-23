@@ -1,0 +1,132 @@
+---
+title: "Day 23"
+author: "Derek Sollberger"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: html_document
+---
+
+```{r setup, message = FALSE, warning = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library("gt")
+library("rgeos") #for centroids
+library("patchwork")
+library("sf") #handle shape files
+library("tidyverse")
+library("webshot") #allows saving a gt table to png
+```
+
+```{r, message = FALSE, warning = FALSE}
+# load shape files
+states_hex_shp <- st_read("us_states_hexgrid/us_states_hexgrid.shp")
+states_shp <- st_read("cb_2018_us_state_5m/cb_2018_us_state_5m.shp")
+
+# https://www.ncsl.org/research/health/state-medical-marijuana-laws.aspx
+d23_data <- readr::read_csv("cannabis_laws.csv")
+
+# merge_data
+d23_data_hex_map <- states_hex_shp |>
+  # mutate(state = stringr::str_split(google_nam, " ")[[1]][1])
+  # separate(google_nam, into = c("state", "country"), sep = " \(")
+# |>
+  #ARGH! ... I just typed in the state abbreviations manually
+  left_join(d23_data, by = c("iso3166_2" = "abbrev"))
+
+d23_data_map <- states_shp |>
+  left_join(d23_data, by = c("NAME" = "state"))
+```
+
+```{r}
+# Calculate the centroid of each hexagon to add the label
+# https://stackoverflow.com/questions/49343958/do-the-values-returned-by-rgeosgcentroid-and-sfst-centroid-differ
+centers_hex <- data.frame(
+  st_coordinates(st_centroid(states_hex_shp$geometry)),
+  id=states_hex_shp$iso3166_2)
+centers <- data.frame(
+  st_coordinates(st_centroid(states_shp$geometry)),
+  id=states_shp$STUSPS)
+
+d23_data_hex_map <- d23_data_hex_map |>
+  left_join(centers_hex, by = c("iso3166_2" = "id"))
+d23_data_map <- d23_data_map |>
+  left_join(centers, by = c("abbrev" = "id"))
+```
+
+```{r}
+hex_plot <- d23_data_hex_map %>%
+  ggplot() +
+  geom_sf(aes(fill = year)) +
+  scale_fill_continuous(low = "darkgreen", high = "green") +
+  geom_text(aes(x = X, y = Y, label = year), size = 2) +
+  # xlim(-125, -65) +
+  # ylim(25, 50) +
+  labs(title = "Cannabis Laws",
+       subtitle = "Year of first cannabis law\n(usually for medicinal purposes)\n30 Day Chart Challenge Day 23: Tiles",
+       caption = "Data Source: National Conference of State Legislatures",
+       x = "", y = "") +
+  theme_minimal() +
+  # theme(legend.position = "right") +
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust=1),
+        panel.background = element_blank(),
+        panel.grid.minor = element_blank(),
+        legend.position = "none",
+        plot.title = element_text(color = "darkgreen", hjust = 1.0, size = 20),
+        plot.subtitle = element_text(color = "darkgreen", hjust = 1.0, size = 15),
+        plot.caption = element_text(color = "darkgreen", hjust = 1.0, size = 10))
+```
+
+```{r}
+# a regular map
+map_plot <- d23_data_map %>%
+  ggplot() +
+  geom_sf(aes(fill = year)) +
+  scale_fill_continuous(low = "darkgreen", high = "green") +
+  geom_text(aes(x = X, y = Y, label = year), size = 2) +
+  xlim(-125, -65) +
+  ylim(25, 50) +
+  labs(title = "",
+       subtitle = "",
+       caption = "",
+       x = "", y = "") +
+  theme_minimal() +
+  # theme(legend.position = "right") +
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust=1),
+        panel.background = element_blank(),
+        panel.grid.minor = element_blank(),
+        legend.position = "none",
+        plot.title = element_text(color = "darkgreen", hjust = 1.0, size = 20),
+        plot.subtitle = element_text(color = "darkgreen", hjust = 1.0, size = 15),
+        plot.caption = element_text(color = "darkgreen", hjust = 1.0, size = 10))
+```
+
+```{r}
+gt_table <- d23_data |>
+  filter(!is.na(year)) |>
+  arrange(year) |>
+  select(state, year) |>
+  gt() |>
+  # tab_style(
+  #   style = list(
+  #     cell_fill(color = year)
+  #   ),
+  #   locations = cells_body(
+  #       columns = state
+  #     )
+  #   )
+  data_color(
+    columns = year,
+    colors = scales::col_numeric(
+      palette = c("darkgreen", "green"),
+      domain = c(1996, 2022))
+  )
+```
+
+
+```{r}
+# patchwork
+map_plot / hex_plot
+```
+
+```{r}
+gt_table |> gtsave("day23_table.png")
+```
+
