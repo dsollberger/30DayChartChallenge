@@ -1,0 +1,85 @@
+---
+title: "Day 24"
+author: "Derek Sollberger"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: html_document
+---
+
+```{r setup, message = FALSE, warning = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library("gghighlight")
+library("tidyverse")
+```
+
+```{r, message = FALSE, warning = FALSE}
+# https://williamsinstitute.law.ucla.edu/projects/gai/
+d24_data_raw <- readr::read_csv("gai_clean.csv")
+```
+
+```{r}
+# I am going to try to find the top 10 and bottom 10 countries according to
+# this Global Acceptance Index
+d24_data <- d24_data_raw |>
+  filter(!is.na(country))
+
+GAI_top <- d24_data |>
+  filter(year == 2017) |>
+  slice_max(gai, n = 10)
+
+GAI_bottom <- d24_data |>
+  filter(year == 2017) |>
+  slice_min(gai, n = 10)
+
+d24_data_subset <- d24_data |>
+  filter((country %in% GAI_top$country) | (country %in% GAI_bottom$country)) |>
+  mutate(for_color = ifelse(gai > 5, "purple", "blue"))
+```
+
+
+```{r}
+# Today we are trying to emulate the data viz style of the Financial Times
+# many of us found
+# https://peymankor.netlify.app/post/ft/
+# as the first Google result
+d24_plot <- d24_data_subset |>
+  ggplot(aes(x = year, y = gai, color = for_color, group = country)) +
+  geom_path(lineend = "round", size = 2) +
+  gghighlight::gghighlight() +
+  facet_wrap(~country) +
+  scale_color_manual(values = c("#008b83", "#8C4799")) + #https://mycolor.space/
+  scale_x_continuous(breaks = c(2003, 2008, 2013, 2017)) +
+  scale_y_continuous(breaks = c(2, 4, 6, 8)) +
+  labs(title = "LGBT Acceptance",
+       subtitle = "Highest and Lowest Readings, Year 2017",
+       caption = "Data Source: UCLA Williams Institute\n30 Day Chart Challenge, Day 24: Financial Times Theme",
+       x = "year", y = "Global Acceptance Index (0 = low, 10 = high)") +
+  theme(axis.text = element_text(colour = "black", size = 24, 
+                                 face = "bold"),
+        axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
+        axis.title.x = element_text(colour = "black", size = 28, 
+                                    face = "bold", vjust = 0.8),
+        axis.title.y = element_text(colour = "black", size = 28, 
+                                    face = "bold", vjust = 0.8),
+        legend.position = "none",
+        panel.background = element_rect(fill = "seashell2"),
+        panel.border = element_blank(),
+        panel.grid.major.x =element_line(colour = "wheat4"),
+        panel.grid.major.y =element_line(colour = "wheat4"),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        panel.spacing.y = unit(3, "lines"),
+        plot.background = element_rect(fill = "seashell2"), 
+        plot.title = element_text(color = "black", size = 40, 
+                                  face = "bold"),
+        plot.subtitle = element_text(color = "black", size = 30),
+        plot.caption = element_text(color = "black", size = 20),
+        # plot.tag = element_text(color = "black", face = "italic", 
+                                # size = 10, lineheight = 0.9),
+        # plot.tag.position = c(0.15,0.02),
+        strip.text = element_text(size = 20, colour = "blue4", 
+                                  face = "bold"),
+        ) 
+
+# ggsave("day24.png", d24_plot, width = 8, height = 6, units = "in")
+```
+

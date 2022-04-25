@@ -11,7 +11,7 @@ library("tidyverse")
 ```
 
 ```{r, message = FALSE, warning = FALSE}
-# https://sdw.ecb.europa.eu/reports.do?node=1000006517%7Caccess-date=2022-02-05%7Cwebsite=sdw.ecb.europa.eu
+# https://www.census.gov/data/tables/time-series/demo/popest/2010s-total-cities-and-towns.html
 d21_data_raw <- readxl::read_xlsx("SUB-IP-EST2019-ANNRNK.xlsx", skip = 3)
 
 ```
