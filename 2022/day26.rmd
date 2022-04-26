@@ -1,0 +1,244 @@
+---
+title: "Day 26"
+author: "Derek Sollberger"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: html_document
+---
+
+```{r setup, message = FALSE, warning = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library("ggfittext")
+library("tidyverse")
+```
+
+```{r, message = FALSE, warning = FALSE}
+# manually making the data frame, haha
+d26_data <- data.frame(
+  x_coord = c(1, 2, 3, 1, 2, 3, 1, 2, 3),
+  y_coord = c(1, 1, 1, 2, 2, 2, 3, 3, 3),
+  building = c("Biomedical Sciences\nand Physics", "Yablokoff-Wallace\nDining Center", "Administration", "Leo and Dottie\nKolligian Library", "Arts and\nComputational Sciences", "Science and\nEngineering 1", "Sustainability Research\nand Engineering", "Classroom and\nOffices 1", "Social Science\nand Management")
+)
+```
+
+```{r}
+# baseplot
+d26_data |>
+  # filter(building %in% c("Biomedical Sciences\nand Physics", "Yablokoff-Wallace\nDining Center", "Administration", "Leo and Dottie\nKolligian Library", "Arts and\nComputational Sciences", "Science and\nEngineering 1", "Sustainability Research\nand Engineering", "Classroom and\nOffices 1", "Social Science\nand Management")) |>
+  ggplot(aes(x = x_coord, y = y_coord, label = building)) +
+  geom_tile(fill = "#FFBF3C", color = "#002856") + #UC Merced brand colors
+  ggfittext::geom_fit_text(color = "#002856", grow = TRUE) +
+  labs(title = "UC Merced",
+       subtitle = "Hide-and-Seek",
+       caption = "Moves may be up, down, left,\nor right (not diagonally)",
+       x = "",
+       y = "") +
+  theme(axis.text.x = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks = element_blank(),
+        legend.position = "none",
+        legend.title = element_blank(),
+        panel.background = element_rect(fill = "#002856"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        plot.title = element_text(color = "#DAA900", face = "bold",
+                                  hjust = 0.5, size = 30),
+        plot.subtitle = element_text(color = "#F18A00", face = "bold",
+                                  hjust = 0.5, size = 25),
+        plot.caption = element_text(color = "#64A43A", face = "bold",
+                                  hjust = 0.5, size = 20))
+```
+
+```{r}
+# start
+d26_data |>
+  filter(building %in% c("Yablokoff-Wallace\nDining Center", "Leo and Dottie\nKolligian Library", "Science and\nEngineering 1", "Classroom and\nOffices 1")) |>
+  ggplot(aes(x = x_coord, y = y_coord, label = building)) +
+  geom_tile(fill = "#FFBF3C", color = "#002856") + #UC Merced brand colors
+  ggfittext::geom_fit_text(color = "#002856", grow = TRUE) +
+  labs(title = "Let's play a game of\nHide-and-Seek\nChoose a starting location",
+       subtitle = "",
+       caption = "",
+       x = "",
+       y = "") +
+  theme(axis.text.x = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks = element_blank(),
+        legend.position = "none",
+        legend.title = element_blank(),
+        panel.background = element_rect(fill = "#002856"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        plot.title = element_text(color = "#DAA900", face = "bold",
+                                  hjust = 0.5, size = 30),
+        plot.subtitle = element_text(color = "#F18A00", face = "bold",
+                                  hjust = 0.5, size = 25),
+        plot.caption = element_text(color = "#64A43A", face = "bold",
+                                  hjust = 0.5, size = 20))
+```
+
+```{r}
+# infill
+d26_data |>
+  # filter(building %in% c("Yablokoff-Wallace\nDining Center", "Leo and Dottie\nKolligian Library", "Science and\nEngineering 1", "Classroom and\nOffices 1")) |>
+  ggplot(aes(x = x_coord, y = y_coord, label = building)) +
+  geom_tile(fill = "#FFBF3C", color = "#002856") + #UC Merced brand colors
+  ggfittext::geom_fit_text(color = "#002856", grow = TRUE) +
+  labs(title = "",
+       subtitle = "Many more buildings have appeared",
+       caption = "",
+       x = "",
+       y = "") +
+  theme(axis.text.x = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks = element_blank(),
+        legend.position = "none",
+        legend.title = element_blank(),
+        panel.background = element_rect(fill = "#002856"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        plot.title = element_text(color = "#DAA900", face = "bold",
+                                  hjust = 0.5, size = 30),
+        plot.subtitle = element_text(color = "#F18A00", face = "bold",
+                                  hjust = 0.5, size = 25),
+        plot.caption = element_text(color = "#64A43A", face = "bold",
+                                  hjust = 0.5, size = 20))
+```
+
+```{r}
+d26_data |>
+  ggplot(aes(x = x_coord, y = y_coord, label = building)) +
+  geom_tile(fill = "#FFBF3C", color = "#002856") + #UC Merced brand colors
+  ggfittext::geom_fit_text(color = "#002856", grow = TRUE) +
+  labs(title = "Make Four Moves",
+       subtitle = "",
+       caption = "Moves may be up, down, left,\nor right (not diagonally)",
+       x = "",
+       y = "") +
+  theme(axis.text.x = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks = element_blank(),
+        legend.position = "none",
+        legend.title = element_blank(),
+        panel.background = element_rect(fill = "#002856"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        plot.title = element_text(color = "#DAA900", face = "bold",
+                                  hjust = 0.5, size = 30),
+        plot.subtitle = element_text(color = "#F18A00", face = "bold",
+                                  hjust = 0.5, size = 25),
+        plot.caption = element_text(color = "#64A43A", face = "bold",
+                                  hjust = 0.5, size = 20))
+```
+
+```{r}
+d26_data |>
+  ggplot(aes(x = x_coord, y = y_coord, label = building)) +
+  geom_tile(fill = "#FFBF3C", color = "#002856") + #UC Merced brand colors
+  ggfittext::geom_fit_text(color = "#002856", grow = TRUE) +
+  labs(title = "",
+       subtitle = "Now, I know that you're not\nin the Administration building",
+       caption = "",
+       x = "",
+       y = "") +
+  theme(axis.text.x = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks = element_blank(),
+        legend.position = "none",
+        legend.title = element_blank(),
+        panel.background = element_rect(fill = "#002856"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        plot.title = element_text(color = "#DAA900", face = "bold",
+                                  hjust = 0.5, size = 30),
+        plot.subtitle = element_text(color = "#F18A00", face = "bold",
+                                  hjust = 0.5, size = 25),
+        plot.caption = element_text(color = "#64A43A", face = "bold",
+                                  hjust = 0.5, size = 20))
+```
+
+
+
+```{r}
+d26_data |>
+  filter(building %in% c("Biomedical Sciences\nand Physics", "Yablokoff-Wallace\nDining Center", "Leo and Dottie\nKolligian Library", "Arts and\nComputational Sciences", "Science and\nEngineering 1", "Sustainability Research\nand Engineering", "Classroom and\nOffices 1", "Social Science\nand Management")) |>
+  ggplot(aes(x = x_coord, y = y_coord, label = building)) +
+  geom_tile(fill = "#FFBF3C", color = "#002856") + #UC Merced brand colors
+  ggfittext::geom_fit_text(color = "#002856", grow = TRUE) +
+  labs(title = "Make Five Moves",
+       subtitle = "",
+       caption = "Moves may be up, down, left,\nor right (not diagonally)",
+       x = "",
+       y = "") +
+  theme(axis.text.x = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks = element_blank(),
+        legend.position = "none",
+        legend.title = element_blank(),
+        panel.background = element_rect(fill = "#002856"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        plot.title = element_text(color = "#DAA900", face = "bold",
+                                  hjust = 0.5, size = 30),
+        plot.subtitle = element_text(color = "#F18A00", face = "bold",
+                                  hjust = 0.5, size = 25),
+        plot.caption = element_text(color = "#64A43A", face = "bold",
+                                  hjust = 0.5, size = 20))
+```
+
+```{r}
+d26_data |>
+  filter(building %in% c("Biomedical Sciences\nand Physics", "Yablokoff-Wallace\nDining Center", "Leo and Dottie\nKolligian Library", "Arts and\nComputational Sciences", "Science and\nEngineering 1", "Sustainability Research\nand Engineering", "Classroom and\nOffices 1", "Social Science\nand Management")) |>
+  ggplot(aes(x = x_coord, y = y_coord, label = building)) +
+  geom_tile(fill = "#FFBF3C", color = "#002856") + #UC Merced brand colors
+  ggfittext::geom_fit_text(color = "#002856", grow = TRUE) +
+  labs(title = "",
+       subtitle = "Since you are not in\nScience and Engineering,\nlet us remove that possibility",
+       # caption = "Moves may be up, down, left,\nor right (not diagonally)",
+       x = "",
+       y = "") +
+  theme(axis.text.x = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks = element_blank(),
+        legend.position = "none",
+        legend.title = element_blank(),
+        panel.background = element_rect(fill = "#002856"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        plot.title = element_text(color = "#DAA900", face = "bold",
+                                  hjust = 0.5, size = 30),
+        plot.subtitle = element_text(color = "#F18A00", face = "bold",
+                                  hjust = 0.5, size = 25),
+        plot.caption = element_text(color = "#64A43A", face = "bold",
+                                  hjust = 0.5, size = 20))
+```
+
+```{r}
+d26_data |>
+  filter(building %in% c("Biomedical Sciences\nand Physics", "Yablokoff-Wallace\nDining Center", "Leo and Dottie\nKolligian Library", "Arts and\nComputational Sciences", "Sustainability Research\nand Engineering", "Classroom and\nOffices 1", "Social Science\nand Management")) |>
+  ggplot(aes(x = x_coord, y = y_coord, label = building)) +
+  geom_tile(fill = "#FFBF3C", color = "#002856") + #UC Merced brand colors
+  ggfittext::geom_fit_text(color = "#002856", grow = TRUE) +
+  labs(title = "Make Two Moves",
+       # subtitle = "Since you are not in\nScience and Engineering,\nlet us remove that possibility",
+       caption = "Moves may be up, down, left,\nor right (not diagonally)",
+       x = "",
+       y = "") +
+  theme(axis.text.x = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks = element_blank(),
+        legend.position = "none",
+        legend.title = element_blank(),
+        panel.background = element_rect(fill = "#002856"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        plot.title = element_text(color = "#DAA900", face = "bold",
+                                  hjust = 0.5, size = 30),
+        plot.subtitle = element_text(color = "#F18A00", face = "bold",
+                                  hjust = 0.5, size = 25),
+        plot.caption = element_text(color = "#64A43A", face = "bold",
+                                  hjust = 0.5, size = 20))
+```
+
+
+
+
