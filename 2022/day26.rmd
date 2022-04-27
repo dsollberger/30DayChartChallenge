@@ -444,6 +444,9 @@ ggsave("day26_plot13.jpg", p13, width = 8, height = 6, units = "in")
 ggsave("day26_plot14.jpg", p14, width = 8, height = 6, units = "in")
 ```
 
+Crummy use of alt text:
+
+The initial set up was a 3-by-3 grid of rectangles that had 9 labels for UC Merced buildings.  I am not sure how best to explain the rest here in an alt text setting, but if you want more information, feel free to contact me.
 
 
 
