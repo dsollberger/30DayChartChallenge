@@ -1,0 +1,111 @@
+---
+title: "Day 28"
+author: "Derek Sollberger"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: html_document
+---
+
+```{r setup, message = FALSE, warning = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library("tidyverse")
+```
+
+```{r, message = FALSE, warning = FALSE}
+# https://www.seanlahman.com/baseball-archive/statistics/
+d28_data_raw <- readr::read_csv("Teams.csv")
+```
+
+```{r}
+# data wrangling
+d28_data <- d28_data_raw |>
+  filter(yearID >= 2011) |>
+  filter(yearID != 2020) |> #yeah, I'm just avoiding the pandemic-shortened season
+  select(yearID, name, W) |>
+  group_by(name) |>
+  mutate(W_avg = mean(W)) |>
+  ungroup() |>
+  mutate(deviation = W - W_avg)
+
+# largest positive deviation: 2019 Twins with 26.6 wins
+# largest negative deviation: 2019 Tigers with -30.8 wins
+
+# subset for labels
+d28_data_for_labels <- d28_data |>
+  filter(name == "Minnesota Twins" | name == "Detroit Tigers") |>
+  filter(yearID == 2015) |>
+  mutate(for_label = paste0(name, "' average: ", W_avg, " wins"))
+```
+
+```{r}
+d28_plot <- d28_data |>
+  ggplot() +
+  geom_line(aes(x = yearID, y = W, group = name), color = "gray75", size = 2) +
+  
+  # focus on the line graphs of the two teams
+  geom_line(aes(x = yearID, y = W), 
+            color = "#D31145", #https://teamcolorcodes.com/minnesota-twins-color-codes/
+            data = d28_data |> filter(name == "Minnesota Twins"),
+            size = 2) +
+  geom_line(aes(x = yearID, y = W_avg), 
+            color = "#D31145", #https://teamcolorcodes.com/minnesota-twins-color-codes/
+            data = d28_data |> filter(name == "Minnesota Twins"),
+            linetype = "dashed",
+            size = 2) +
+  
+  # drawing dashed lines for the averages
+  geom_line(aes(x = yearID, y = W), 
+            color = "#0C2340", #https://teamcolorcodes.com/detroit-tigers-color-codes/
+            data = d28_data |> filter(name == "Detroit Tigers"),
+            size = 2) +
+  geom_line(aes(x = yearID, y = W_avg), 
+            color = "#0C2340", #https://teamcolorcodes.com/detroit-tigers-color-codes/
+            data = d28_data |> filter(name == "Detroit Tigers"),
+            linetype = "dashed",
+            size = 2) +
+  
+  # drawing error bars to highlight those deviations
+  geom_errorbar(aes(x = yearID, ymin = W_avg, ymax = W),
+                color = "#D31145", #https://teamcolorcodes.com/minnesota-twins-color-codes/
+                data = d28_data |> filter(name == "Minnesota Twins" & yearID == 2019),
+                size = 4) +
+  geom_errorbar(aes(x = yearID, ymin = W, ymax = W_avg),
+                color = "#0C2340", #https://teamcolorcodes.com/detroit-tigers-color-codes/
+                data = d28_data |> filter(name == "Detroit Tigers" & yearID == 2019),
+                size = 4) +
+  
+  # labeling the dashed lines (for averages, and to clarify team names and colors)
+  ggrepel::geom_label_repel(aes(x = yearID, y = W_avg, label = for_label),
+                            color = "#002B5C",
+                            data = d28_data_for_labels |> filter(name == "Minnesota Twins"),
+                            fill = "#D31145") +
+  ggrepel::geom_label_repel(aes(x = yearID, y = W_avg, label = for_label),
+                            color = "#FA4616",
+                            data = d28_data_for_labels |> filter(name == "Detroit Tigers"),
+                            fill = "#0C2340") +
+
+  
+  scale_x_continuous(breaks = c(2011:2021),
+                     labels = c("2011", "2012", "2013", "2014", "2015",
+                                "2016", "2017", "2018", "2019", "", "2021")) +
+  labs(title = "30 Day Chart Challenge, Day 28: Deviations\nWhen comparing MLB teams' wins\nagainst their averages from the past 10 full seasons,",
+       subtitle = "The 2019 Minnesota Twins had the largest\npositive deviation with 26.6 wins above average",
+       caption = "The 2019 Detroit Tigers had the largest\nnegative deviation with 30.8 wins below average",
+       x = "",
+       y = "wins") +
+  theme(axis.text.x = element_text(color = "black"),
+        axis.text.y = element_text(color = "black"),
+        # axis.ticks = element_blank(),
+        legend.position = "none",
+        legend.title = element_blank(),
+        panel.background = element_rect(fill = "white"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        plot.background = element_rect(fill = "white"),
+        plot.title = element_text(size = 15, face = "bold",
+                                  color = "black", hjust = 0.0),
+        plot.subtitle = element_text(size = 20,
+                                  color = "#D31145", hjust = 0.5),
+        plot.caption = element_text(size = 20,
+                                  color = "#0C2340", hjust = 0.5))
+```
+
