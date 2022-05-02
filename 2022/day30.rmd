@@ -1,0 +1,78 @@
+---
+title: "Day 30"
+author: "Derek Sollberger"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: html_document
+---
+
+```{r setup, message = FALSE, warning = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library("gt")
+library("tidyverse")
+```
+
+```{r, message = FALSE, warning = FALSE}
+# https://data.un.org/
+d30_data_raw <- readr::read_csv("SYB64_323_202110_Teaching Staff in education.csv",
+                                skip = 227,
+                                col_names = FALSE)
+colnames(d30_data_raw) <- c("region_num", "country", "year", "type", "value", "notes", "source")
+```
+
+```{r}
+d30_data <- d30_data_raw |>
+  
+  # focus on primary and secondary teachers
+  # (no further look into qualifications in this analysis)
+  filter(type == "Teachers at primary level (thousands)" |
+           type == "Teachers at secondary level (thousands)") |>
+  
+  # retain most recent information for each country
+  group_by(country) |>
+  filter(year == max(year)) |>
+  ungroup() |>
+  
+  # reshape data to ease ratio calculation
+  select(country, type, value) |>
+  pivot_wider(names_from = type, values_from = value) |>
+  rename(primary = `Teachers at primary level (thousands)`,
+         secondary = `Teachers at secondary level (thousands)`) |>
+  
+  # avoid incomplete data
+  filter(primary > 1) |>
+  filter(secondary > 1) |>
+  
+  # ratio calculation
+  mutate(ratio = primary / secondary) |>
+  arrange(-ratio) |>
+  
+  # keep top 10 and bottom 10
+  slice(1:10, (n()-10):n())
+```
+
+```{r}
+day_30_table <- d30_data |>
+  gt() |>
+  tab_header(title = "Top 10 and Bottom 10 Ratios",
+             subtitle = "Primary and Secondary School Teachers (in thousands)") |>
+  fmt_number(columns = ratio, decimals = 2) |>
+  tab_source_note(
+    source_note = md("Data Source: United Nations Data")) |>
+  
+  # color coding
+  tab_style(
+    style = cell_fill(color = "orange"),
+    locations = cells_body(
+      columns = c(country, ratio),
+      rows = ratio > 1)) |>
+  tab_style(
+    style = cell_fill(color = "green"),
+    locations = cells_body(
+      columns = c(country, ratio),
+      rows = ratio < 1))
+```
+
+```{r}
+day_30_table |> gtsave("day30_table.png")
+```
+
