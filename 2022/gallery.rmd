@@ -1,0 +1,69 @@
+---
+title: "gallery"
+author: "Derek Sollberger"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup}
+library("gt")
+```
+
+```{r}
+image_files <- c(
+  "day01.jpeg",
+  "day02.jpeg",
+  "day03tweet.jpg",
+  "day04.jpeg",
+  "day05.jpeg",
+  "day06.jpeg",
+  "day07.jpeg",
+  "day08.jpeg",
+  "day09.jpeg",
+  "day10.jpeg",
+  "day11.jpg",
+  "day12.jpeg",
+  "day13.jpeg",
+  "day14.jpg",
+  "day15.jpg",
+  "day16.jpg",
+  "day17.jpeg",
+  "day18.jpeg",
+  "day19.jpeg",
+  "day20.jpg",
+  "day21.jpeg",
+  "day22.gif",
+  "day23.jpg",
+  "day24.png",
+  "day25.png",
+  "day26_plot1.jpg",
+  "day27.jpg",
+  "day28.png",
+  "day29.jpg",
+  "day30_table.png"
+)
+```
+
+```{r}
+# https://mobile.twitter.com/FGazzelloni/status/1536291643145560064
+df <- data.frame(matrix(image_files, nrow = 6, ncol = 5, byrow = TRUE))
+```
+
+```{r}
+# https://stackoverflow.com/questions/64447579/insert-images-into-gt-table
+my_gt_table <- df |>
+  gt() |>
+  tab_header(
+    title = md("**30 Day Chart Challenge, 2022**"),
+    subtitle = md("*Derek Sollberger*")
+  ) |>
+  tab_options(column_labels.hidden = TRUE) |>
+  text_transform(
+    locations =  cells_body(),
+    fn = function(x){
+      local_image(filename = x, height = 100)
+      # lapply(x, local_image)
+      }
+  )
+```
+
