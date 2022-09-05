@@ -52,20 +52,38 @@ d12_data_for_labels <- d12_data |>
 ```{r}
 d12_data |>
   ggplot(aes(x = ranking, y = tuition)) +
-  geom_point() +
+  geom_point(color = "#00588D") +
   geom_label_repel(aes(x = ranking, y = tuition,
-                       label = institution),
+                       label = "University of California Merced"),
                    data = d12_data_for_labels,
-                   nudge_x = 150,
-                   nudge_y = 15000,
-                   arrow = arrow(
-      length = unit(0.03, "npc"), type = "closed", ends = "last"
-    )) +
+                   fill = "#EBB434",
+                   # nudge_x = 100,
+                   nudge_y = -33000,
+                   # point.padding = NA,
+                   segment.color = "#EBB434",
+                   segment.size = 2,
+                   arrow = arrow(ends = "last",
+                                 length = unit(0.03, "npc"),
+                                 type = "closed")) +
+  ggimage::geom_image(aes(x = ranking, y = tuition, 
+                          image = logo_path),
+                      data = d12_data_for_labels,
+                      size = 0.05,
+                      by = "width",
+                      asp = 1.618) +
+  ggimage::geom_image(aes(x = 350, y = 57500, 
+                          image = logo_path),
+                      data = d12_data_for_labels,
+                      size = 0.2,
+                      by = "width",
+                      asp = 1.618) +
   labs(title = "UC Merced Entered the Top 100",
-       subtitle = "30 Day Chart Challenge, Day 12: The Economist",
+       subtitle = "30 Day Chart Challenge, Day 12: Emulating The Economist",
        x = "US News Ranking (2022)",
-       y = "Tuition (US dollars)",
-       caption = "Data Source: Kaggle, Neel Kajare") +
-  ggthemes::theme_economist()
+       y = "Out-of-State Tuition (US dollars)",
+       caption = "Source: Kaggle, Neel Gajare") +
+  ggthemes::theme_economist() +
+  theme(panel.grid.major = element_line(color = "#B7C6CF"),
+        plot.caption = element_text(hjust = 0.0))
 ```
 
